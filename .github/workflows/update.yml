@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 env:
+  CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
 
 permissions:
@@ -20,7 +21,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install toolchain
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+          echo "Installed:"
+          cargo --version
+          rustc --version --verbose
 
       - uses: Swatinem/rust-cache@v2
 

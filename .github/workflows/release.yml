@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+
 permissions:
   contents: write
 
@@ -15,9 +19,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-unknown-linux-musl
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update \
+              --target x86_64-unknown-linux-musl
+          rustup default stable
+          echo "Installed:"
+          cargo --version
+          rustc --version --verbose
       - name: Build release (Linux)
         run: cargo build --release --all-features --target x86_64-unknown-linux-musl
       - run: strip target/x86_64-unknown-linux-musl/release/gptman
@@ -32,9 +40,14 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-pc-windows-msvc
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update \
+              --target x86_64-pc-windows-msvc
+          rustup default stable
+          echo "Installed:"
+          cargo --version
+          rustc --version --verbose
       - name: Build release (Windows)
         run: cargo build --release --all-features --target=x86_64-pc-windows-msvc
       - uses: actions/upload-artifact@v3
@@ -48,7 +61,12 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+          echo "Installed:"
+          cargo --version
+          rustc --version --verbose
       - name: Build release (OSX)
         run: cargo build --release --all-features
       - uses: actions/upload-artifact@v3

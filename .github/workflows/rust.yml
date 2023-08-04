@@ -7,6 +7,7 @@ on:
     branches: [ main ]
 
 env:
+  CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -34,20 +35,19 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Select Rust version
+      - name: Install toolchain
         shell: bash
         run: |
-          RUST_VER="${{ matrix.rust }}"
-          if [ "$RUST_VER" = msrv ]; then
-              RUST_VER=$(cargo metadata --format-version 1 --no-deps | \
+          ver="${{ matrix.rust }}"
+          if [ "$ver" = msrv ]; then
+              ver=$(cargo metadata --format-version 1 --no-deps | \
                   jq -r '.packages[0].rust_version')
-              echo "MSRV: $RUST_VER"
           fi
-          echo "RUST_VER=$RUST_VER" >> $GITHUB_ENV
-
-      - uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_VER }}
+          rustup toolchain install "$ver" --profile minimal --no-self-update
+          rustup default "$ver"
+          echo "Installed:"
+          cargo --version
+          rustc --version --verbose
 
       - uses: Swatinem/rust-cache@v2
 
